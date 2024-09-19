@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Lottószelvény kitöltés</title>
+    <link rel="stylesheet" href="lottostilus.css">
+</head>
+<body>
+    <div class="kontener">
+        <h1>Lottószelvény kitöltés</h1>
+        <div class="szamok" id="szamok"></div>
+        <button onclick="szamokBekuldes()">Számok beküldése</button>
+        <div id="eredmeny"></div>
+    </div>
+
+    <script>
+        const maxKivalasztas = 5;
+        let kivalasztottSzamok = new Set();
+        let kihuzottSzamok = new Set();
+
+        function szamokLetrehozasa() {
+            const szamokKontener = document.getElementById('szamok');
+            for (let i = 1; i <= 90; i++) {
+                const szamElem = document.createElement('div');
+                szamElem.classList.add('szam');
+                szamElem.textContent = i;
+                szamElem.onclick = () => szamKivalasztas(i, szamElem);
+                szamokKontener.appendChild(szamElem);
+            }
+        }
+
+        function szamKivalasztas(szam, elem) {
+            if (kivalasztottSzamok.has(szam)) {
+                kivalasztottSzamok.delete(szam);
+                elem.classList.remove('kivalasztott');
+            } else if (kivalasztottSzamok.size < maxKivalasztas) {
+                kivalasztottSzamok.add(szam);
+                elem.classList.add('kivalasztott');
+            } else {
+                alert('Már 5 számot kiválasztottál!');
+            }
+        }
+
+        function szamokBekuldes() {
+            if (kivalasztottSzamok.size === maxKivalasztas) {
+                szamokSorsolasa();
+            } else {
+                alert('Kérlek válassz ki pontosan 5 számot!');
+            }
+        }
+
+        function szamokSorsolasa() {
+            kihuzottSzamok.clear();
+            while (kihuzottSzamok.size < 5) {
+                kihuzottSzamok.add(Math.floor(Math.random() * 90) + 1);
+            }
+
+            const talalatok = new Set([...kivalasztottSzamok].filter(x => kihuzottSzamok.has(x)));
+
+            document.querySelectorAll('.szam').forEach(elem => {
+                const szam = parseInt(elem.textContent);
+                elem.classList.toggle('nyero', kihuzottSzamok.has(szam));
+            });
+
+            document.getElementById('eredmeny').textContent = `Kihúzott számok: ${[...kihuzottSzamok].join(', ')}
+                                                               Találatok száma: ${talalatok.size}`;
+        }
+
+        szamokLetrehozasa();
+    </script>
+</body>
+</html>
