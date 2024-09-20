@@ -2,71 +2,86 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <title>Lottószelvény kitöltés</title>
-    <link rel="stylesheet" href="lottostilus.css">
+    <title>Egyszerű Lottószelvény</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .szamok { display: flex; flex-wrap: wrap; justify-content: center; max-width: 500px; margin: 20px auto; }
+        .szam { width: 40px; height: 40px; margin: 5px; border: 1px solid #ccc; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .kivalasztott { background-color: #007bff; color: white; }
+        .nyero { background-color: #28a745; color: white; }
+        button { margin: 10px; padding: 10px 20px; font-size: 16px; }
+    </style>
 </head>
 <body>
-    <div class="kontener">
-        <h1>Lottószelvény kitöltés</h1>
-        <div class="szamok" id="szamok"></div>
-        <button onclick="szamokBekuldes()">Számok beküldése</button>
-        <div id="eredmeny"></div>
-    </div>
+    <h1>Egyszerű Lottószelvény</h1>
+    <div class="szamok" id="szamok"></div>
+    <button onclick="szamokBekuldes()">Számok beküldése</button>
+    <div id="eredmeny"></div>
 
     <script>
-        const maxKivalasztas = 5;
-        let kivalasztottSzamok = new Set();
-        let kihuzottSzamok = new Set();
+        var maxKivalasztas = 5;
+        var kivalasztottSzamok = [];
 
-        function szamokLetrehozasa() {
-            const szamokKontener = document.getElementById('szamok');
-            for (let i = 1; i <= 90; i++) {
-                const szamElem = document.createElement('div');
-                szamElem.classList.add('szam');
-                szamElem.textContent = i;
-                szamElem.onclick = () => szamKivalasztas(i, szamElem);
-                szamokKontener.appendChild(szamElem);
-            }
-        }
-
-        function szamKivalasztas(szam, elem) {
-            if (kivalasztottSzamok.has(szam)) {
-                kivalasztottSzamok.delete(szam);
-                elem.classList.remove('kivalasztott');
-            } else if (kivalasztottSzamok.size < maxKivalasztas) {
-                kivalasztottSzamok.add(szam);
-                elem.classList.add('kivalasztott');
-            } else {
-                alert('Már 5 számot kiválasztottál!');
-            }
+        // Számok létrehozása
+        for (var i = 1; i <= 90; i++) {
+            var szam = document.createElement('div');
+            szam.className = 'szam';
+            szam.textContent = i;
+            szam.onclick = (function(szam) {
+                return function() {
+                    if (this.classList.toggle('kivalasztott')) {
+                        if (kivalasztottSzamok.length < maxKivalasztas) {
+                            kivalasztottSzamok.push(szam);
+                        } else {
+                            alert('Már 5 számot kiválasztottál!');
+                            this.classList.remove('kivalasztott');
+                        }
+                    } else {
+                        var index = kivalasztottSzamok.indexOf(szam);
+                        if (index > -1) {
+                            kivalasztottSzamok.splice(index, 1);
+                        }
+                    }
+                };
+            })(i);
+            document.getElementById('szamok').appendChild(szam);
         }
 
         function szamokBekuldes() {
-            if (kivalasztottSzamok.size === maxKivalasztas) {
-                szamokSorsolasa();
-            } else {
+            if (kivalasztottSzamok.length !== maxKivalasztas) {
                 alert('Kérlek válassz ki pontosan 5 számot!');
-            }
-        }
-
-        function szamokSorsolasa() {
-            kihuzottSzamok.clear();
-            while (kihuzottSzamok.size < 5) {
-                kihuzottSzamok.add(Math.floor(Math.random() * 90) + 1);
+                return;
             }
 
-            const talalatok = new Set([...kivalasztottSzamok].filter(x => kihuzottSzamok.has(x)));
+            var kihuzottSzamok = [];
+            while (kihuzottSzamok.length < 5) {
+                var ujSzam = Math.floor(Math.random() * 90) + 1;
+                if (kihuzottSzamok.indexOf(ujSzam) === -1) {
+                    kihuzottSzamok.push(ujSzam);
+                }
+            }
 
-            document.querySelectorAll('.szam').forEach(elem => {
-                const szam = parseInt(elem.textContent);
-                elem.classList.toggle('nyero', kihuzottSzamok.has(szam));
-            });
+            var talalatok = 0;
+            for (var i = 0; i < kivalasztottSzamok.length; i++) {
+                if (kihuzottSzamok.indexOf(kivalasztottSzamok[i]) !== -1) {
+                    talalatok++;
+                }
+            }
 
-            document.getElementById('eredmeny').textContent = `Kihúzott számok: ${[...kihuzottSzamok].join(', ')}
-                                                               Találatok száma: ${talalatok.size}`;
+            var szamElemek = document.getElementsByClassName('szam');
+            for (var i = 0; i < szamElemek.length; i++) {
+                var szam = parseInt(szamElemek[i].textContent);
+                if (kihuzottSzamok.indexOf(szam) !== -1) {
+                    szamElemek[i].classList.add('nyero');
+                } else {
+                    szamElemek[i].classList.remove('nyero');
+                }
+            }
+
+            document.getElementById('eredmeny').innerHTML = 
+                'Kihúzott számok: ' + kihuzottSzamok.join(', ') + '<br>' +
+                'Találatok száma: ' + talalatok;
         }
-
-        szamokLetrehozasa();
     </script>
 </body>
 </html>
